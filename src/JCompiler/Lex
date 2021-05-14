@@ -1,0 +1,30 @@
+        NONE, NAME, INTNUM, FLOATNUM, EOT
+
+        // Keywords (50)
+        ABSTRACT, CONTINUE, FOR, NEW, SWITCH,
+        ASSERT, DEFAULT, IF, PACKAGE, SYNCHRONIZED,
+        BOOLEAN, DO, GOTO, PRIVATE, THIS,
+        BREAK, DOUBLE, IMPLEMENTS, PROTECTED, THROW,
+        BYTE, ELSE, IMPORT, PUBLIC, THROWS,
+        CASE, ENUM, INSTANCEOF, RETURN, TRANSIENT,
+        CATCH, EXTENDS, INT, SHORT, TRY,
+        CHAR, FINAL, INTERFACE, STATIC, VOID,
+        CLASS, FINALLY, LONG, STRICTFP, VOLATILE,
+        CONST, FLOAT, NATIVE, SUPER, WHILE,
+
+        // Separators
+        // ( ) { } [ ] ; , . ... @ ::
+        LPAR, RPAR, LBRACE, RBRACE, LSQRBR, RSQRBR,
+        SEMI, COMMA, DOT, ELL, AT, DOUBLCOLON,
+
+        // Operators
+        // = > < ! ~ ? : ->
+        // == >= <= != && || ++ --
+        // + - * / & | ^ % << >> >>>
+        // += -= *= /= &= |= ^=
+        // %= <<= >>= >>>=
+        ASS, GT, LT, NOT, TILDE, QMARK, COLON, RARROW,
+        EQ, GE, LE, NE, DOUBLAND, DOUBLOR, INC, DEC,
+        PLUS, MINUS, MULT, DIV, AND, OR, XOR, PERCENT, LSHIFT, RSHIFT, ZRSHIFT,
+        PLUSASS, MINUSASS, MULTASS, DIVASS, ANDASS, ORASS, XORASS,
+        PERCENTASS, LSHIFTASS, RSHIFTASS, ZRSHIFTASS

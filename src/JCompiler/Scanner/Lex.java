@@ -1,0 +1,40 @@
+package JCompiler.Scanner;
+
+public enum Lex {
+    NONE, EOT,
+
+    //Identifiers
+    NAME,
+
+    // Keywords (50)
+    ABSTRACT, CONTINUE, FOR, NEW, SWITCH,
+    ASSERT, DEFAULT, IF, PACKAGE, SYNCHRONIZED,
+    BOOLEAN, DO, GOTO, PRIVATE, THIS,
+    BREAK, DOUBLE, IMPLEMENTS, PROTECTED, THROW,
+    BYTE, ELSE, IMPORT, PUBLIC, THROWS,
+    CASE, ENUM, INSTANCEOF, RETURN, TRANSIENT,
+    CATCH, EXTENDS, INT, SHORT, TRY,
+    CHAR, FINAL, INTERFACE, STATIC, VOID,
+    CLASS, FINALLY, LONG, STRICTFP, VOLATILE,
+    CONST, FLOAT, NATIVE, SUPER, WHILE,
+
+    //Literals
+    INT_LIT, FLOAT_POINT_LIT, BOOLEAN_LIT, NULL_LIT, CH_LIT, STRING_LIT,
+
+    // Separators
+    // ( ) { } [ ] ; , . ... @ ::
+    L_PAR, R_PAR, L_BRACE, R_BRACE, L_SQR_BR, R_SQR_BR,
+    SEMI, COMMA, DOT, ELL, AT, DOUBLE_COLON,
+
+    // Operators
+    // = > < ! ~ ? : ->
+    // == >= <= != && || ++ --
+    // + - * / & | ^ % << >> >>>
+    // += -= *= /= &= |= ^=
+    // %= <<= >>= >>>=
+    ASSIGN, GT, LT, NOT, TILDE, QMARK, COLON, R_ARROW,
+    EQ, GE, LE, NE, DOUBLE_AND, DOUBLE_OR, INC, DEC,
+    PLUS, MINUS, MULT, DIV, AND, OR, XOR, PERCENT, L_SHIFT, R_SHIFT, Z_R_SHIFT,
+    PLUS_ASSIGN, MINUS_ASSIGN, MULT_ASSIGN, DIV_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
+    PERCENT_ASSIGN, L_SHIFT_ASSIGN, R_SHIFT_ASSIGN, Z_R_SHIFT_ASSIGN
+}

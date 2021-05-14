@@ -1,0 +1,109 @@
+Goal= 
+	[Импорт]
+	MainClass
+	EOF
+	
+Импорт = {"import" Name ["." Name {"." Name}] ";"}
+
+MainClass	=	"public", "class", Identifier, 
+"{", 
+	"public", "static", "void", "main", "(", ")", 
+	"{", 
+		ПослОператоров ";"
+	"}", 
+"}";
+
+
+ПослОператоров =
+	Оператор ";"
+	{Если нет "}", то Оператор ";"}.
+		
+Оператор = [
+	ОбъявлПерем
+	| ОбъявлКонст
+	| Имя [{"." Имя}] "(" [Параметр {"," Параметр}]")" ";"
+	| "if", "(", Выраж, ")", 
+		(Оператор ";"
+		| "{" ПослОператоров ";" "}")
+	{"else" "if", "(", Выраж, ")", 
+		(Оператор ";"
+		| "{" ПослОператоров ";" "}")}
+	["else", 
+		(Оператор ";"
+		| "{" ПослОператоров ";" "}"]
+		
+	| "while", "(", Выраж, ")", 
+		(Оператор ";"
+		| "{" ПослОператоров ";" "}")
+	| Переменная "=" Выраж ";"
+	| "Scanner" Имя "=" "new" "Scanner" "(" "System.in" ")"
+]	
+	ОбъявлПерем	= Тип, Имя, ["=", ПростоеВыраж] {"," Имя, ["=", КонстВыраж]} ";"
+	ОбъявлКонст = "final" Тип, Имя, "=", КонстВыраж ";"
+	Тип = "int";
+	
+	КонстВыраж = ["+" | "-"] (Число | Имя).
+	
+
+	
+	Параметр = Переменная | Выраж.
+	Переменная = Имя [{"." Имя}]
+	
+	
+Оператор = [
+	Переменная ":=" Выраж
+	|[Имя "."] Имя ["(" [Параметр {"," Параметр}] ")"]
+	|IF Выраж THEN
+	  ПослОператоров
+	{ELSIF Выраж THEN
+	  ПослОператоров}
+	[ELSE
+	  ПослОператоров]
+	END
+	|WHILE Выраж DO
+	  ПослОператоров
+	END
+].
+
+Параметр = Переменная | Выраж.
+Переменная = Имя.
+Выраж = ПростоеВыраж [Отношение ПростоеВыраж].
+ПростоеВыраж = ["+"|"-"] Слагаемое {ОперСлож Слагаемое}.
+Слагаемое = Множитель {ОперУмн Множитель}.
+Множитель =
+   Имя "(" [Выраж | Тип] ")"
+   | Число
+   | "(" Выраж ")".
+
+
+Identifier	is	one or more letters, digits, and underscores, starting with a letter
+IntegerLiteral	is	one or more decimal digits
+EOF	is	a distinguished token returned by the scanner at end-of-file
+
+
+//ClassDeclaration	=	"class", Identifier [ "extends", Identifier ] "{" { VarDeclaration } { MethodDeclaration } "}";
+
+VarDeclaration	=	Type, Identifier, ";";
+
+ConstDeclaration = "const" Type, Identifier, ";";
+
+//MethodDeclaration	=	"public", Type, Identifier, "(" [ Type, Identifier { ",", Type, Identifier } ] ")", "{" {VarDeclaration } {Statement} "return", Expression, ";", "}";
+
+Type	=	"int"
+|	"boolean"
+;	
+
+Statement	=	"{" {Statement} "}"
+|	"if", "(", Expression, ")", Statement, "else", Statement
+|	"while", "(", Expression, ")", Statement
+|	"System.out.println", "(" , Expression, ")", ";"
+|	Identifier, "=", Expression, " ;"
+;	
+
+Expression	=	Expression ( "&&" | "<" | "+" | "-" | "*" ) Expression
+|	Expression, ".", Identifier, "(", [ Expression { ",", Expression } ], ")"
+|	IntegerLiteral
+|	Identifier
+|	"this"
+|	"(", Expression, ")"
+;
