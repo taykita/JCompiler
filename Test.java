@@ -3,28 +3,31 @@ import java.util.Scanner;
 public class Test {
     /* Является ли число квадратом */
     public static void main() {
-        int k, n;
-        int s = 5;
-        int e = s;
-        e = Math.max(4, 2);
-        System.out.println(e);
-        //Test = 5;
+        int n, s, d;
+        final int w = 6;
         Scanner scan = new Scanner(System.in);
-        final int t = 10;
-        final int a = t;
-
         scan.nextInt(n);
-        k = 1;
-        s = 0;
-        while (s < n) {
-            s = s + k;
-            k = k + 2;
+        int c = 0;
+        int i = 2;
+
+        while (i <= n) {
+            d = 2;
+            while ((i % d) != 0) {
+                d = d + 1;
+            }
+            if (d == i) {
+                if ((c % w) == 0) {
+                    System.out.println();
+                }
+                System.out.printf("%6s", i);
+                c = c + 1;
+            }
+            i = i + 1;
         }
-        if (s == n) {
-            System.out.println(1);
-        } else {
-            System.out.println(0);
-        }
-        System.out.println();
+
     }
+    system.out.println();
+    system.out.print(c);
+    system.out.println();
+
 }

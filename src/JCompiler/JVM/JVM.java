@@ -10,6 +10,10 @@ public class JVM {
         for (int i = 0; i < MEM_SIZE; i++) {
             M.add(STOP);
         }
+        for (int i = 0; i < MEM_SIZE / 64; i++) {
+            S.add("");
+        }
+
         this.PC = PC;
     }
 
@@ -36,10 +40,13 @@ public class JVM {
     public final int IFEQ = -19;
     public final int IFNE = -20;
     public final int IN = -21;
-    public final int OUT = -22;
+    public final int OUTLN = -22;
     public final int LN = -23;
+    public final int OUTF = -24;
+    public final int OUT = -25;
 
     private final int MEM_SIZE = 8 * 1024;
+    //private final int MEM_SIZE = 64;
 
     private List<String> mnemo = new ArrayList<>(Arrays.asList("",
             "STOP", "ADD", "SUB", "MULT",
@@ -47,16 +54,24 @@ public class JVM {
             "SAVE", "DUP", "DROP", "SWAP",
             "OVER", "GOTO", "IFLT", "IFLE",
             "IFGT", "IFGE", "IFEQ", "IFNE",
-            "IN", "OUT", "LN"));
+            "IN", "OUTLN", "LN"));
 
+    private int SPSTR;
     private int SP;
     private int count;
 
     List<Integer> M = new ArrayList<>();
+    List<String> S = new ArrayList<>();
+
+    public void addStr(String str) {
+        S.set(SPSTR, str);
+        SPSTR++;
+    }
 
     public void Run() {
         PC = 0;
         SP = MEM_SIZE;
+        SPSTR = 0;
         count = 0;
         while (true) {
             count++;
@@ -141,8 +156,19 @@ public class JVM {
                 } catch (InputMismatchException e) {
                     throw new RunException("Неправильный ввод");
                 }
-            } else if (cmd == OUT) {
+            } else if (cmd == OUTLN) {
                 new Out().outLn(M.get(SP));
+                SP++;
+            } else if (cmd == OUT) {
+                new Out().out(M.get(SP));
+                SP++;
+            } else if (cmd == OUTF) {
+                try {
+                    System.out.printf(S.get(SPSTR), M.get(SP));
+                } catch (RuntimeException e) {
+                    throw new RunException("Неверный формат");
+                }
+                SPSTR--;
                 SP++;
             } else if (cmd == LN) {
                 new Out().outLn("");

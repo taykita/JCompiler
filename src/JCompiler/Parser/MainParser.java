@@ -51,19 +51,25 @@ public class MainParser {
         skip(Lex.INT);
         check(Lex.NAME);
         table.set(new Var(scan.getName(), T.Int), scan.getName());
+        Var x = (Var) table.find(scan.getName());
         scan.setNextLex();
         if (scan.getLex() == Lex.ASSIGN) {
+            gen.genAddr(x);
             scan.setNextLex();
             intExpr();
+            gen.gen(jvm.SAVE);
         }
         while (scan.getLex() == Lex.COMMA) {
             scan.setNextLex();
             check(Lex.NAME);
             table.set(new Var(scan.getName(), T.Int), scan.getName());
+            x = (Var) table.find(scan.getName());
             scan.setNextLex();
             if (scan.getLex() == Lex.ASSIGN) {
+                gen.genAddr(x);
                 scan.setNextLex();
                 intExpr();
+                gen.gen(jvm.SAVE);
             }
         }
         check(Lex.SEMI);
@@ -82,7 +88,7 @@ public class MainParser {
                 intExpr();
                 gen.gen(jvm.DUP);
                 gen.gen(0);
-                gen.gen(PC + 3);
+                gen.gen(gen.getPC() + 3);
                 gen.gen(jvm.IFGE);
                 gen.gen(jvm.NEG);
                 break;
@@ -91,19 +97,37 @@ public class MainParser {
                 gen.gen(jvm.DUP);
                 skip(Lex.COMMA);
                 intExpr();
-                gen.gen(PC + 3);
+                gen.gen(jvm.SWAP);
+                ;
+                gen.gen(jvm.OVER);
+                gen.gen(gen.getPC() + 3);
                 gen.gen(jvm.IFGE);
-                gen.gen(PC + 3);
+                gen.gen(jvm.SWAP);
+                ;
+                gen.gen(jvm.DROP);
+                //gen.gen(PC + 3);
                 break;
             case "Math.min":
                 intExpr();
+                gen.gen(jvm.DUP);
                 skip(Lex.COMMA);
                 intExpr();
+                gen.gen(jvm.SWAP);
+                ;
+                gen.gen(jvm.OVER);
+                gen.gen(gen.getPC() + 3);
+                gen.gen(jvm.IFLE);
+                gen.gen(jvm.SWAP);
+                ;
+                gen.gen(jvm.DROP);
                 break;
-            case "Boolean.logicalAnd":
+            case "Math.signum":
+                gen.gen(1);
                 intExpr();
-                skip(Lex.COMMA);
-                intExpr();
+                gen.gen(0);
+                gen.gen(gen.getPC() + 3);
+                gen.gen(jvm.IFGE);
+                gen.gen(jvm.NEG);
                 break;
             default:
                 assert false;
@@ -315,7 +339,25 @@ public class MainParser {
         } else if (x.getName().equals("System.out.println")) {
             if (scan.getLex() != Lex.R_PAR) {
                 intExpr();
-                gen.gen(jvm.OUT);
+                gen.gen(jvm.OUTLN);
+            } else {
+                gen.gen(jvm.LN);
+            }
+        } else if (x.getName().equals("System.out.printf")) {
+            if (scan.getLex() != Lex.R_PAR) {
+                check(Lex.STRING_LIT);
+                String format = scan.getStrLit();
+                scan.setNextLex();
+                gen.gen(format.hashCode());
+                intExpr();
+                gen.gen(jvm.OUTLN);
+            } else {
+                gen.gen(jvm.LN);
+            }
+        } else if (x.getName().equals("System.out.print")) {
+            if (scan.getLex() != Lex.R_PAR) {
+                intExpr();
+                gen.gen(jvm.OUTLN);
             } else {
                 gen.gen(jvm.LN);
             }
@@ -440,6 +482,8 @@ public class MainParser {
         skip(Lex.L_PAR);
         boolExr();
         skip(Lex.R_PAR);
+        int CondPC = gen.getPC();
+        int LastGOTO = 0;
         if (scan.getLex() == Lex.L_BRACE) {
             scan.setNextLex();
             SeqStatements();
@@ -448,29 +492,60 @@ public class MainParser {
             Statement();
             check(Lex.SEMI);
         }
-        if (scan.getLex() == Lex.ELSE) {
+
+        while (scan.getLex() == Lex.ELSE) {
             scan.setNextLex();
             if (scan.getLex() == Lex.IF) {
-                IfStatement();
-            } else if (scan.getLex() == Lex.L_BRACE) {
-                scan.setNextLex();
-                SeqStatements();
-                skip(Lex.R_BRACE);
+                gen.gen(LastGOTO);
+                gen.gen(jvm.GOTO);
+                LastGOTO = gen.getPC();
+                gen.fixup(CondPC, gen.getPC());
+                skip(Lex.IF);
+                skip(Lex.L_PAR);
+                boolExr();
+                skip(Lex.R_PAR);
+                CondPC = gen.getPC();
+                if (scan.getLex() == Lex.L_BRACE) {
+                    scan.setNextLex();
+                    SeqStatements();
+                    skip(Lex.R_BRACE);
+                } else {
+                    Statement();
+                    check(Lex.SEMI);
+                }
+                if (scan.getLex() != Lex.ELSE) {
+                    gen.fixup(CondPC, gen.getPC());
+                }
             } else {
-                Statement();
-                check(Lex.SEMI);
+                gen.gen(LastGOTO);
+                gen.gen(jvm.GOTO);
+                LastGOTO = gen.getPC();
+                jvm.printCode(gen.getPC());
+                gen.fixup(CondPC, gen.getPC());
+                if (scan.getLex() == Lex.L_BRACE) {
+                    scan.setNextLex();
+                    SeqStatements();
+                    skip(Lex.R_BRACE);
+                } else {
+                    Statement();
+                    check(Lex.SEMI);
+                }
             }
         }
+        gen.fixup(LastGOTO, gen.getPC());
+
     }
 
     //    "while", "(", Выраж, ")",
 //        (Оператор ";"
 //        | "{" ПослОператоров "}")
     private void WhileStatement() {
+        int WhilePC = gen.getPC();
         skip(Lex.WHILE);
         skip(Lex.L_PAR);
         boolExr();
         skip(Lex.R_PAR);
+        int CondPC = gen.getPC();
         if (scan.getLex() == Lex.L_BRACE) {
             scan.setNextLex();
             SeqStatements();
@@ -479,6 +554,9 @@ public class MainParser {
             Statement();
             check(Lex.SEMI);
         }
+        gen.gen(WhilePC);
+        gen.gen(jvm.GOTO);
+        gen.fixup(CondPC, gen.getPC());
     }
 
     //    Оператор = [
@@ -618,7 +696,7 @@ public class MainParser {
 
         for (Var v : vars) {
             if (v.getAddr() > 0) {
-                gen.fixup(v.getAddr(), PC);
+                gen.fixup(v.getAddr(), gen.getPC());
                 gen.gen(0);
             }
         }
@@ -633,10 +711,11 @@ public class MainParser {
         table.set(new Func("Math.abs", T.Int), "Math.abs");
         table.set(new Func("Math.max", T.Int), "Math.max");
         table.set(new Func("Math.min", T.Int), "Math.min");
-        table.set(new Func("Boolean.logicalAnd", T.Bool), "Boolean.logicalAnd");
+        table.set(new Func("Math.signum", T.Int), "Math.signum");
         table.set(new Proc("System.exit"), "System.exit");
         table.set(new Proc("System.out.println"), "System.out.println");
-        table.set(new JCompiler.Parser.Items.Class("Boolean"), "Boolean");
+        table.set(new Proc("System.out.printf"), "System.out.printf");
+        table.set(new Proc("System.out.print"), "System.out.print");
         table.set(new JCompiler.Parser.Items.Class("Math"), "Math");
         table.set(new JCompiler.Parser.Items.Class("System"), "System");
         table.set(new JCompiler.Parser.Items.Class("System.out"), "System.out");

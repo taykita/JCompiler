@@ -28,6 +28,7 @@ public class MainScanner {
 
     private String name;
     private int intNum;
+    private String strLit;
 
     private final NameScanner nameScanner;
     private final LiteralScanner literalScanner;
@@ -118,5 +119,13 @@ public class MainScanner {
 
     public void setIntNum(int intNum) {
         this.intNum = intNum;
+    }
+
+    public String getStrLit() {
+        return strLit;
+    }
+
+    public void setStrLit(String strLit) {
+        this.strLit = strLit;
     }
 }

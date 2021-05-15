@@ -11,7 +11,7 @@ public class LiteralScanner implements Scanner {
     public LiteralScanner(Text text, MainScanner scan) {
         this.t = text;
         this.chLitScanner = new ChLitScanner(this.t);
-        this.stringLitScanner = new StringLitScanner(this.t);
+        this.stringLitScanner = new StringLitScanner(this.t, scan);
         this.numberLitScanner = new NumberLitScanner(this.t, scan);
     }
 

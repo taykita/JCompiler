@@ -53,6 +53,7 @@ public class J {
             e.showError();
         }
         out.outLn("Компиляция завершена");
+        jvm.printCode(gen.getPC());
         jvm.Run();
         Done();
     }
