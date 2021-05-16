@@ -90,6 +90,7 @@ public class MainScanner {
 
     public void setNextLex() {
         skipSpace();
+        t.setLexPos(t.getInLinePos());
         lex = Lex.NONE;
         nextLex();
         checkEOT();
@@ -127,5 +128,9 @@ public class MainScanner {
 
     public void setStrLit(String strLit) {
         this.strLit = strLit;
+    }
+
+    public String getFileName() {
+        return t.getFileName();
     }
 }

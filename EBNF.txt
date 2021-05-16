@@ -1,11 +1,10 @@
-Goal= 
+Класс =
 	[Импорт]
-	MainClass
-	EOF
+	Главный класс
 	
-Импорт = {"import" Name ["." Name {"." Name}] ";"}
+Импорт = {"import" Имя ["." Имя {"." Имя}] ";"}
 
-MainClass	=	"public", "class", Identifier, 
+Главный класс	=	"public", "class", Имя .java файла,
 "{", 
 	"public", "static", "void", "main", "(", ")", 
 	"{", 
@@ -15,95 +14,43 @@ MainClass	=	"public", "class", Identifier,
 
 
 ПослОператоров =
-	Оператор ";"
-	{Если нет "}", то Оператор ";"}.
+	Оператор
+	{Если нет "}", то Оператор }.
 		
 Оператор = [
-	ОбъявлПерем
-	| ОбъявлКонст
-	| Имя [{"." Имя}] "(" [Параметр {"," Параметр}]")" ";"
+	ОбъявлПерем ";"
+	| ОбъявлКонст ";"
+	| Имя [{"." Имя}] ["(" [Параметр {"," Параметр}] ")"] ";"
 	| "if", "(", Выраж, ")", 
-		(Оператор ";"
-		| "{" ПослОператоров ";" "}")
+		(Оператор
+		| "{" ПослОператоров "}")
 	{"else" "if", "(", Выраж, ")", 
-		(Оператор ";"
-		| "{" ПослОператоров ";" "}")}
+		(Оператор
+		| "{" ПослОператоров "}")}
 	["else", 
-		(Оператор ";"
-		| "{" ПослОператоров ";" "}"]
+		(Оператор
+		| "{" ПослОператоров "}"]
 		
 	| "while", "(", Выраж, ")", 
-		(Оператор ";"
-		| "{" ПослОператоров ";" "}")
+		(Оператор
+		| "{" ПослОператоров "}")
 	| Переменная "=" Выраж ";"
-	| "Scanner" Имя "=" "new" "Scanner" "(" "System.in" ")"
+	| "Scanner" Имя "=" "new" "Scanner" "(" "System.in" ")" ";"
 ]	
-	ОбъявлПерем	= Тип, Имя, ["=", ПростоеВыраж] {"," Имя, ["=", КонстВыраж]} ";"
-	ОбъявлКонст = "final" Тип, Имя, "=", КонстВыраж ";"
-	Тип = "int";
-	
-	КонстВыраж = ["+" | "-"] (Число | Имя).
-	
+ОбъявлПерем	= Тип, Имя, ["=", ПростоеВыраж] {"," Имя, ["=", КонстВыраж]}
+ОбъявлКонст = "final" Тип, Имя, "=", КонстВыраж
+Тип = "int"
 
-	
-	Параметр = Переменная | Выраж.
-	Переменная = Имя [{"." Имя}]
-	
-	
-Оператор = [
-	Переменная ":=" Выраж
-	|[Имя "."] Имя ["(" [Параметр {"," Параметр}] ")"]
-	|IF Выраж THEN
-	  ПослОператоров
-	{ELSIF Выраж THEN
-	  ПослОператоров}
-	[ELSE
-	  ПослОператоров]
-	END
-	|WHILE Выраж DO
-	  ПослОператоров
-	END
-].
+КонстВыраж = ["+" | "-"] (Число | Имя).
 
-Параметр = Переменная | Выраж.
 Переменная = Имя.
 Выраж = ПростоеВыраж [Отношение ПростоеВыраж].
 ПростоеВыраж = ["+"|"-"] Слагаемое {ОперСлож Слагаемое}.
 Слагаемое = Множитель {ОперУмн Множитель}.
 Множитель =
-   Имя "(" [Выраж | Тип] ")"
+   Имя ["(" [Выраж] ")"]
    | Число
    | "(" Выраж ")".
-
-
-Identifier	is	one or more letters, digits, and underscores, starting with a letter
-IntegerLiteral	is	one or more decimal digits
-EOF	is	a distinguished token returned by the scanner at end-of-file
-
-
-//ClassDeclaration	=	"class", Identifier [ "extends", Identifier ] "{" { VarDeclaration } { MethodDeclaration } "}";
-
-VarDeclaration	=	Type, Identifier, ";";
-
-ConstDeclaration = "const" Type, Identifier, ";";
-
-//MethodDeclaration	=	"public", Type, Identifier, "(" [ Type, Identifier { ",", Type, Identifier } ] ")", "{" {VarDeclaration } {Statement} "return", Expression, ";", "}";
-
-Type	=	"int"
-|	"boolean"
-;	
-
-Statement	=	"{" {Statement} "}"
-|	"if", "(", Expression, ")", Statement, "else", Statement
-|	"while", "(", Expression, ")", Statement
-|	"System.out.println", "(" , Expression, ")", ";"
-|	Identifier, "=", Expression, " ;"
-;	
-
-Expression	=	Expression ( "&&" | "<" | "+" | "-" | "*" ) Expression
-|	Expression, ".", Identifier, "(", [ Expression { ",", Expression } ], ")"
-|	IntegerLiteral
-|	Identifier
-|	"this"
-|	"(", Expression, ")"
-;
+Отношение = "==" | "!=" | "<" | "<=" | ">" | ">="
+ОперСлож = "+" | "-"
+ОперУмн = "*" | "/" | "%"

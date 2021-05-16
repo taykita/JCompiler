@@ -4,6 +4,7 @@ import JCompiler.Exceptions.ParserExceptions.ContextException;
 import JCompiler.JVM.Gen;
 import JCompiler.JVM.JVM;
 import JCompiler.Parser.Items.*;
+import JCompiler.Parser.Items.Class;
 import JCompiler.Scanner.MainScanner;
 import JCompiler.Scanner.Lex;
 import JCompiler.Exceptions.ParserExceptions.SyntaxException;
@@ -28,6 +29,7 @@ public class MainParser {
     private int PC;
     private final JVM jvm;
     private final Gen gen;
+    private int printfCount = 0;
 
     private final MainScanner scan;
 
@@ -98,14 +100,11 @@ public class MainParser {
                 skip(Lex.COMMA);
                 intExpr();
                 gen.gen(jvm.SWAP);
-                ;
                 gen.gen(jvm.OVER);
                 gen.gen(gen.getPC() + 3);
                 gen.gen(jvm.IFGE);
                 gen.gen(jvm.SWAP);
-                ;
                 gen.gen(jvm.DROP);
-                //gen.gen(PC + 3);
                 break;
             case "Math.min":
                 intExpr();
@@ -113,13 +112,21 @@ public class MainParser {
                 skip(Lex.COMMA);
                 intExpr();
                 gen.gen(jvm.SWAP);
-                ;
                 gen.gen(jvm.OVER);
                 gen.gen(gen.getPC() + 3);
                 gen.gen(jvm.IFLE);
                 gen.gen(jvm.SWAP);
-                ;
                 gen.gen(jvm.DROP);
+                break;
+            case "Math.incrementExact":
+                intExpr();
+                gen.gen(1);
+                gen.gen(jvm.ADD);
+                break;
+            case "Math.decrementExact":
+                intExpr();
+                gen.gen(1);
+                gen.gen(jvm.SUB);
                 break;
             case "Math.signum":
                 gen.gen(1);
@@ -157,11 +164,11 @@ public class MainParser {
                 Function((Func) x);
                 skip(Lex.R_PAR);
                 return ((Func) x).getType();
-            } else if (x instanceof JCompiler.Parser.Items.Class) {
+            } else if (x instanceof Class) {
                 scan.setNextLex();
                 skip(Lex.DOT);
                 check(Lex.NAME);
-                String key = ((JCompiler.Parser.Items.Class) x).getName() + '.' + scan.getName();
+                String key = ((Class) x).getName() + '.' + scan.getName();
                 x = table.find(key);
                 if (!(x instanceof Func)) {
                     throw new ContextException("Ожидается функция");
@@ -172,7 +179,7 @@ public class MainParser {
                 skip(Lex.R_PAR);
                 return ((Func) x).getType();
             } else {
-                throw new ContextException("Ожидается имя константы, переменной или функции");
+                throw new ContextException("Ожидается имя константы, переменной, функции или класса");
             }
         } else if (scan.getLex() == Lex.INT_LIT) {
             gen.gen(scan.getIntNum());
@@ -305,11 +312,6 @@ public class MainParser {
         check(Lex.SEMI);
     }
 
-    //    Параметр = Переменная | Выраж.
-    private void Parameter() {
-        Expression();
-    }
-
     private void AssStatement(Var x) {
         gen.genAddr(x);
         skip(Lex.NAME);
@@ -348,16 +350,19 @@ public class MainParser {
                 check(Lex.STRING_LIT);
                 String format = scan.getStrLit();
                 scan.setNextLex();
-                gen.gen(format.hashCode());
+                skip(Lex.COMMA);
                 intExpr();
-                gen.gen(jvm.OUTLN);
+                jvm.addStr(format);
+                gen.gen(printfCount);
+                printfCount++;
+                gen.gen(jvm.OUTF);
             } else {
                 gen.gen(jvm.LN);
             }
         } else if (x.getName().equals("System.out.print")) {
             if (scan.getLex() != Lex.R_PAR) {
                 intExpr();
-                gen.gen(jvm.OUTLN);
+                gen.gen(jvm.OUT);
             } else {
                 gen.gen(jvm.LN);
             }
@@ -481,9 +486,9 @@ public class MainParser {
         skip(Lex.IF);
         skip(Lex.L_PAR);
         boolExr();
-        skip(Lex.R_PAR);
         int CondPC = gen.getPC();
         int LastGOTO = 0;
+        skip(Lex.R_PAR);
         if (scan.getLex() == Lex.L_BRACE) {
             scan.setNextLex();
             SeqStatements();
@@ -493,45 +498,47 @@ public class MainParser {
             check(Lex.SEMI);
         }
 
-        while (scan.getLex() == Lex.ELSE) {
-            scan.setNextLex();
-            if (scan.getLex() == Lex.IF) {
-                gen.gen(LastGOTO);
-                gen.gen(jvm.GOTO);
-                LastGOTO = gen.getPC();
-                gen.fixup(CondPC, gen.getPC());
-                skip(Lex.IF);
-                skip(Lex.L_PAR);
-                boolExr();
-                skip(Lex.R_PAR);
-                CondPC = gen.getPC();
-                if (scan.getLex() == Lex.L_BRACE) {
-                    scan.setNextLex();
-                    SeqStatements();
-                    skip(Lex.R_BRACE);
-                } else {
-                    Statement();
-                    check(Lex.SEMI);
-                }
-                if (scan.getLex() != Lex.ELSE) {
+        if (scan.getLex() == Lex.ELSE) {
+            while (scan.getLex() == Lex.ELSE) {
+                scan.setNextLex();
+                if (scan.getLex() == Lex.IF) {
+                    gen.gen(LastGOTO);
+                    gen.gen(jvm.GOTO);
+                    LastGOTO = gen.getPC();
                     gen.fixup(CondPC, gen.getPC());
-                }
-            } else {
-                gen.gen(LastGOTO);
-                gen.gen(jvm.GOTO);
-                LastGOTO = gen.getPC();
-                jvm.printCode(gen.getPC());
-                gen.fixup(CondPC, gen.getPC());
-                if (scan.getLex() == Lex.L_BRACE) {
-                    scan.setNextLex();
-                    SeqStatements();
-                    skip(Lex.R_BRACE);
+                    skip(Lex.IF);
+                    skip(Lex.L_PAR);
+                    boolExr();
+                    skip(Lex.R_PAR);
+                    CondPC = gen.getPC();
+                    if (scan.getLex() == Lex.L_BRACE) {
+                        scan.setNextLex();
+                        SeqStatements();
+                        skip(Lex.R_BRACE);
+                    } else {
+                        Statement();
+                        check(Lex.SEMI);
+                    }
                 } else {
-                    Statement();
-                    check(Lex.SEMI);
+                    gen.gen(LastGOTO);
+                    gen.gen(jvm.GOTO);
+                    LastGOTO = gen.getPC();
+                    jvm.printCode(gen.getPC());
+                    gen.fixup(CondPC, gen.getPC());
+                    if (scan.getLex() == Lex.L_BRACE) {
+                        scan.setNextLex();
+                        SeqStatements();
+                        skip(Lex.R_BRACE);
+                    } else {
+                        Statement();
+                        check(Lex.SEMI);
+                    }
                 }
             }
+        } else {
+            gen.fixup(CondPC, gen.getPC());
         }
+
         gen.fixup(LastGOTO, gen.getPC());
 
     }
@@ -618,7 +625,13 @@ public class MainParser {
     private void MainClass() {
         skip(Lex.PUBLIC);
         skip(Lex.CLASS);
-        skip(Lex.NAME);
+        check(Lex.NAME);
+        if (scan.getName().equals(scan.getFileName())) {
+            scan.setNextLex();
+        } else {
+            throw new ContextException("Неверное имя главного класса");
+        }
+
         table.set(new JCompiler.Parser.Items.Class(scan.getName()), scan.getName());
         skip(Lex.L_BRACE);
 
@@ -666,7 +679,8 @@ public class MainParser {
                         for (String partName : name) {
                             finalName.append(partName);
                         }
-                        table.set(new JCompiler.Parser.Items.Class(finalName.toString()), finalName.toString());
+                        table.set(new Type("Scanner"), "Scanner");
+                        table.set(new Class(finalName.toString()), finalName.toString());
                     } else {
                         throw new ContextException("Ожидается Scanner");
                     }
@@ -681,10 +695,6 @@ public class MainParser {
         }
     }
 
-    //    Goal=
-//        [Импорт]
-//        MainClass
-//        EOF
     private void Goal() {
         Import();
         MainClass();
@@ -711,6 +721,8 @@ public class MainParser {
         table.set(new Func("Math.abs", T.Int), "Math.abs");
         table.set(new Func("Math.max", T.Int), "Math.max");
         table.set(new Func("Math.min", T.Int), "Math.min");
+        table.set(new Func("Math.incrementExact", T.Int), "Math.incrementExact");
+        table.set(new Func("Math.decrementExact", T.Int), "Math.decrementExact");
         table.set(new Func("Math.signum", T.Int), "Math.signum");
         table.set(new Proc("System.exit"), "System.exit");
         table.set(new Proc("System.out.println"), "System.out.println");
@@ -719,7 +731,6 @@ public class MainParser {
         table.set(new JCompiler.Parser.Items.Class("Math"), "Math");
         table.set(new JCompiler.Parser.Items.Class("System"), "System");
         table.set(new JCompiler.Parser.Items.Class("System.out"), "System.out");
-        table.set(new Type("Scanner"), "Scanner");
 
         table.openScope();
 

@@ -20,10 +20,10 @@ public class JVMException extends RuntimeException {
 
 
     private int getPos() {
-        if (t.getInLinePos() - 1 < 0) {
-            return t.getPrevLinePos();
+        if (t.getLexPos() - 1 < 0) {
+            return t.getLexPos();
         }
-        return t.getInLinePos() - 1;
+        return t.getLexPos() - 1;
     }
 
     public void showError() {

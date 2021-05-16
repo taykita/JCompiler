@@ -19,7 +19,8 @@ public class StringLitScanner extends CharacterSeq implements Scanner {
     @Override
     public Lex scan() {
         t.setNextCh();
-        StringBuilder strLit = new StringBuilder(t.getCh());
+        StringBuilder strLit = new StringBuilder();
+        strLit.append(t.getCh());
         while (t.getCh() != '\"') {
             if (t.chIsEOT() || !t.chNotEOL()) {
                 throw new LexException(t, "Не закончен строковой литерал");
@@ -27,6 +28,7 @@ public class StringLitScanner extends CharacterSeq implements Scanner {
             skipChar();
             strLit.append(t.getCh());
         }
+        strLit.deleteCharAt(strLit.length()-1);
         t.setNextCh();
         scan.setStrLit(strLit.toString());
 

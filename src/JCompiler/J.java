@@ -32,9 +32,6 @@ public class J {
         addFiles(t, args);
     }
 
-    public static void Done() {
-
-    }
 
     public static void main(String[] args) {
         Init(t, args);
@@ -46,15 +43,14 @@ public class J {
         out.outLn("Компилятор языка \"JavaScanner.J\"");
         try {
             pars.Compile();
+            out.outLn("Компиляция завершена");
+            //jvm.printCode(gen.getPC());
+            jvm.Run();
         } catch (ParsException e) {
             e.showError();
             //e.showStackTrace();
         } catch (LexException e) {
             e.showError();
         }
-        out.outLn("Компиляция завершена");
-        jvm.printCode(gen.getPC());
-        jvm.Run();
-        Done();
     }
 }

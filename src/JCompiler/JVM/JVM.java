@@ -54,7 +54,7 @@ public class JVM {
             "SAVE", "DUP", "DROP", "SWAP",
             "OVER", "GOTO", "IFLT", "IFLE",
             "IFGT", "IFGE", "IFEQ", "IFNE",
-            "IN", "OUTLN", "LN"));
+            "IN", "OUTLN", "LN", "OUTF", "OUT"));
 
     private int SPSTR;
     private int SP;
@@ -71,7 +71,7 @@ public class JVM {
     public void Run() {
         PC = 0;
         SP = MEM_SIZE;
-        SPSTR = 0;
+        SPSTR = MEM_SIZE / 64;
         count = 0;
         while (true) {
             count++;
@@ -164,12 +164,11 @@ public class JVM {
                 SP++;
             } else if (cmd == OUTF) {
                 try {
-                    System.out.printf(S.get(SPSTR), M.get(SP));
+                    System.out.printf(S.get(M.get(SP)), M.get(SP+1));
                 } catch (RuntimeException e) {
                     throw new RunException("Неверный формат");
                 }
-                SPSTR--;
-                SP++;
+                SP += 2;
             } else if (cmd == LN) {
                 new Out().outLn("");
             } else if (cmd == STOP) {

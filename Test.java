@@ -1,7 +1,6 @@
 import java.util.Scanner;
 
 public class Test {
-    /* Является ли число квадратом */
     public static void main() {
         int n, s, d;
         final int w = 6;
@@ -13,21 +12,19 @@ public class Test {
         while (i <= n) {
             d = 2;
             while ((i % d) != 0) {
-                d = d + 1;
+                d = Math.incrementExact(d);
             }
             if (d == i) {
                 if ((c % w) == 0) {
                     System.out.println();
                 }
                 System.out.printf("%6s", i);
-                c = c + 1;
+                c = Math.incrementExact(c);
             }
-            i = i + 1;
+            i = Math.incrementExact(i);
         }
-
+        System.out.println();
+        System.out.print(c);
+        System.out.println();
     }
-    system.out.println();
-    system.out.print(c);
-    system.out.println();
-
 }

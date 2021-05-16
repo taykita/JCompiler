@@ -24,10 +24,13 @@ public class Text {
     private int prevLinePos = 0;
     private StringBuilder lines = new StringBuilder("");
     private int bSlashCount = 0;
+    private int lexPos;
 
     private final CharacterSeq characterSeq = new CharacterSeq(this);
 
     private char ch = chEOT;
+
+    private String fileName;
 
     public void reset(String fileName) {
         try (FileReader file = new FileReader(fileName)) {
@@ -46,6 +49,19 @@ public class Text {
         } catch (Exception e) {
             throw new FileException("Ошибка при закритии файла");
         }
+
+        for (int i = 0; i < fileName.length(); i++) {
+            if (fileName.charAt(i) == '\\') {
+                fileName = fileName.substring(i + 1, fileName.length() - 1);
+            }
+        }
+        for (int i = fileName.length() - 1; i >= 0; i--) {
+            if (fileName.charAt(i) == '.') {
+                fileName = fileName.substring(0, i);
+                break;
+            }
+        }
+        this.fileName = fileName;
     }
 
     public char getCh() {
@@ -169,4 +185,15 @@ public class Text {
         }
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setLexPos(int lexPos) {
+        this.lexPos = lexPos;
+    }
+
+    public int getLexPos() {
+        return lexPos;
+    }
 }

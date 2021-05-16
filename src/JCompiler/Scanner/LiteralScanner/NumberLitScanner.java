@@ -99,18 +99,18 @@ public class NumberLitScanner implements Scanner {
             if (t.getCh() == 'x' || t.getCh() == 'X') {
                 t.setNextCh();
                 skip(HEX_DIGIT, HEX_DIGIT, HEX_DIGIT_AND_UNDERSCORE);
-                scan.setIntNum(Integer.parseInt(num));
+                scan.setIntNum(Integer.parseInt(num, 16));
                 if (isFloat()) {
                     skip(HEX_DIGIT, HEX_DIGIT, HEX_DIGIT_AND_UNDERSCORE);
                 }
             } else if (t.getCh() == 'b' || t.getCh() == 'B') {
                 t.setNextCh();
                 skip(BINARY_DIGIT, BINARY_DIGIT, BINARY_DIGIT_AND_UNDERSCORE);
-                scan.setIntNum(Integer.parseInt(num));
+                scan.setIntNum(Integer.parseInt(num, 2));
             } else if (OCTAL_DIGIT_AND_UNDERSCORE.contains(t.getCh())) {
                 skipUnderscores(OCTAL_DIGIT);
                 skip(OCTAL_DIGIT, OCTAL_DIGIT, OCTAL_DIGIT_AND_UNDERSCORE);
-                scan.setIntNum(Integer.parseInt(num));
+                scan.setIntNum(Integer.parseInt(num, 8));
                 if (DIGIT.contains(t.getCh())) {
                     skip(DIGIT, DIGIT, DIGIT_AND_UNDERSCORE);
                     if (isFloat()) {

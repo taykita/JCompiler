@@ -35,17 +35,17 @@ public class Gen {
     public void genComp(Lex op) {
         gen(0);
         if (op == Lex.EQ) {
-            gen(-15);
-        } else if (op == Lex.NE) {
-            gen(-16);
-        } else if (op == Lex.GE) {
-            gen(-17);
-        } else if (op == Lex.GT) {
-            gen(-18);
-        } else if (op == Lex.LE) {
-            gen(-19);
-        } else if (op == Lex.LT) {
             gen(-20);
+        } else if (op == Lex.NE) {
+            gen(-19);
+        } else if (op == Lex.GE) {
+            gen(-15);
+        } else if (op == Lex.GT) {
+            gen(-16);
+        } else if (op == Lex.LE) {
+            gen(-17);
+        } else if (op == Lex.LT) {
+            gen(-18);
         }
     }
 
