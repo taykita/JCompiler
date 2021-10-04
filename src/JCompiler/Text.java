@@ -24,7 +24,8 @@ public class Text {
     private int prevLinePos = 0;
     private StringBuilder lines = new StringBuilder("");
     private int bSlashCount = 0;
-    private int lexPos;
+    private String lexLine;
+    private StringBuilder line4Bird = new StringBuilder();
 
     private final CharacterSeq characterSeq = new CharacterSeq(this);
 
@@ -82,18 +83,26 @@ public class Text {
 
     public void setNextCh() {
         if (pos < src.length()) {
+            if (ch == '\t') {
+                line4Bird.append('\t');
+            } else {
+                line4Bird.append(' ');
+            }
             ch = src.charAt(pos);
 
             // Вывод текста. Убрать/закоментить на этапе релиза
             //System.out.print(ch);
 
             lines.append(ch);
+
             pos++;
+
             inLinePos++;
             if ((ch == '\n') || (ch == '\r')) {
                 ch = chEOL;
                 prevLinePos = inLinePos;
                 inLinePos = 0;
+                line4Bird = new StringBuilder("");
             }
 
             if (ch == '\\') {
@@ -189,11 +198,15 @@ public class Text {
         return fileName;
     }
 
-    public void setLexPos(int lexPos) {
-        this.lexPos = lexPos;
+    public void setLexLine(String lexLine) {
+        this.lexLine = lexLine;
     }
 
-    public int getLexPos() {
-        return lexPos;
+    public String getLexLine() {
+        return lexLine;
+    }
+
+    public String getLine4Bird() {
+        return line4Bird.toString();
     }
 }

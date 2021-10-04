@@ -5,6 +5,7 @@ import JCompiler.JVM.Gen;
 import JCompiler.JVM.JVM;
 import JCompiler.Parser.Items.*;
 import JCompiler.Parser.Items.Class;
+import JCompiler.Scanner.LexName;
 import JCompiler.Scanner.MainScanner;
 import JCompiler.Scanner.Lex;
 import JCompiler.Exceptions.ParserExceptions.SyntaxException;
@@ -18,7 +19,7 @@ public class MainParser {
         this.gen = gen;
         this.PC = PC;
     }
-
+    private LexName lexName = new LexName();
     private Table table = new Table();
     private Set<String> procedures = new HashSet<>(Arrays.asList("System.exit", "System.out.println"));
 
@@ -35,7 +36,7 @@ public class MainParser {
 
     private void check(Lex lex) {
         if (scan.getLex() != lex) {
-            throw new SyntaxException(scan.getT(), "Ожидается " + lex.name());
+            throw new SyntaxException(scan.getT(), "Ожидается " + lexName.get(lex));
         }
     }
 
@@ -43,7 +44,7 @@ public class MainParser {
         if (scan.getLex() == lex) {
             scan.setNextLex();
         } else {
-            throw new SyntaxException(scan.getT(), "Ожидается " + lex.name());
+            throw new SyntaxException(scan.getT(), "Ожидается " + lexName.get(lex));
         }
     }
 
@@ -120,24 +121,61 @@ public class MainParser {
                 break;
             case "Math.incrementExact":
                 intExpr();
+                gen.gen(jvm.DUP);
+                gen.gen(Integer.MAX_VALUE);
+                gen.gen(gen.getPC() + 6);
+                gen.gen(jvm.IFNE);
+                jvm.addStr("Арифметическая ошибка! Переполнение типа Integer");
+                gen.gen(printfCount);
+                printfCount++;
+                gen.gen(jvm.ERROR);
+                gen.gen(1);
+                gen.gen(jvm.STOP);
                 gen.gen(1);
                 gen.gen(jvm.ADD);
                 break;
             case "Math.decrementExact":
                 intExpr();
+                gen.gen(jvm.DUP);
+                gen.gen(Integer.MAX_VALUE);
+                gen.gen(jvm.NEG);
+                gen.gen(1);
+                gen.gen(jvm.SUB);
+                gen.gen(gen.getPC() + 6);
+                gen.gen(jvm.IFNE);
+                jvm.addStr("Арифметическая ошибка! Переполнение типа Integer");
+                gen.gen(printfCount);
+                printfCount++;
+                gen.gen(jvm.ERROR);
+                gen.gen(1);
+                gen.gen(jvm.STOP);
                 gen.gen(1);
                 gen.gen(jvm.SUB);
                 break;
-            case "Math.signum":
-                gen.gen(1);
+            case "Math.negateExact":
                 intExpr();
-                gen.gen(0);
-                gen.gen(gen.getPC() + 3);
-                gen.gen(jvm.IFGE);
                 gen.gen(jvm.NEG);
                 break;
+            case "Math.addExact":
+                intExpr();
+                skip(Lex.COMMA);
+                intExpr();
+                gen.gen(jvm.ADD);
+                break;
+            case "Math.subtractExact":
+                intExpr();
+                skip(Lex.COMMA);
+                intExpr();
+                gen.gen(jvm.SUB);
+                break;
+            case "Math.multiplyExact":
+                intExpr();
+                skip(Lex.COMMA);
+                intExpr();
+                gen.gen(jvm.MULT);
+                break;
             default:
-                assert false;
+                gen.gen(jvm.IN);
                 break;
         }
     }
@@ -315,11 +353,50 @@ public class MainParser {
     private void AssStatement(Var x) {
         gen.genAddr(x);
         skip(Lex.NAME);
-        skip(Lex.ASSIGN);
-        T currentType = Expression();
-        if (x.getType() != currentType) {
-            throw new ContextException("Несоответствие типов присваивания");
+        if (scan.getLex() == Lex.PLUS_ASSIGN) {
+            scan.setNextLex();
+            gen.genAddr(x);
+            gen.gen(jvm.LOAD);
+            intExpr();
+            gen.gen(jvm.ADD);
+        } else if (scan.getLex() == Lex.MINUS_ASSIGN) {
+            scan.setNextLex();
+            gen.genAddr(x);
+            gen.gen(jvm.LOAD);
+            intExpr();
+            gen.gen(jvm.SUB);
+        } else if (scan.getLex() == Lex.MULT_ASSIGN) {
+            scan.setNextLex();
+            gen.genAddr(x);
+            gen.gen(jvm.LOAD);
+            intExpr();
+            gen.gen(jvm.MULT);
+        } else if (scan.getLex() == Lex.DIV_ASSIGN) {
+            scan.setNextLex();
+            gen.genAddr(x);
+            gen.gen(jvm.LOAD);
+            intExpr();
+            gen.gen(jvm.DIV);
+        } else if (scan.getLex() == Lex.INC) {
+            scan.setNextLex();
+            gen.genAddr(x);
+            gen.gen(jvm.LOAD);
+            gen.gen(1);
+            gen.gen(jvm.ADD);
+        } else if (scan.getLex() == Lex.DEC) {
+            scan.setNextLex();
+            gen.genAddr(x);
+            gen.gen(jvm.LOAD);
+            gen.gen(1);
+            gen.gen(jvm.SUB);
+        } else {
+            skip(Lex.ASSIGN);
+            T currentType = Expression();
+            if (x.getType() != currentType) {
+                throw new ContextException("Несоответствие типов присваивания");
+            }
         }
+
         gen.gen(jvm.SAVE);
     }
 
@@ -366,10 +443,6 @@ public class MainParser {
             } else {
                 gen.gen(jvm.LN);
             }
-        } else {
-            Variable();
-            gen.gen(jvm.IN);
-            gen.gen(jvm.SAVE);
         }
     }
 
@@ -413,7 +486,7 @@ public class MainParser {
             scan.setNextLex();
             check(Lex.NAME);
             table.set(new JCompiler.Parser.Items.Class(scan.getName()), scan.getName());
-            table.set(new Proc(scan.getName() + ".nextInt"), scan.getName() + ".nextInt");
+            table.set(new Func(scan.getName() + ".nextInt", T.Int), scan.getName() + ".nextInt");
             scan.setNextLex();
             skip(Lex.ASSIGN);
             skip(Lex.NEW);
@@ -473,6 +546,24 @@ public class MainParser {
         testBool(currentType);
     }
 
+
+    private void IncDecStatement(int op) {
+        scan.setNextLex();
+        skip(Lex.NAME);
+        Object x = table.find(scan.getName());
+        if (x instanceof Var) {
+            gen.genAddr((Var) x);
+            gen.genAddr((Var) x);
+            gen.gen(jvm.LOAD);
+            gen.gen(1);
+            gen.gen(op);
+            gen.gen(jvm.SAVE);
+        } else {
+            throw new ContextException("Ожидается переменная");
+        }
+
+    }
+
     //    "if", "(", Выраж, ")",
 //        (Оператор ";"
 //        | "{" ПослОператоров "}")
@@ -495,7 +586,6 @@ public class MainParser {
             skip(Lex.R_BRACE);
         } else {
             Statement();
-            check(Lex.SEMI);
         }
 
         if (scan.getLex() == Lex.ELSE) {
@@ -517,13 +607,15 @@ public class MainParser {
                         skip(Lex.R_BRACE);
                     } else {
                         Statement();
-                        check(Lex.SEMI);
+                    }
+                    if (scan.getLex() != Lex.ELSE) {
+                        gen.fixup(CondPC, gen.getPC());
                     }
                 } else {
                     gen.gen(LastGOTO);
                     gen.gen(jvm.GOTO);
                     LastGOTO = gen.getPC();
-                    jvm.printCode(gen.getPC());
+                    //jvm.printCode(gen.getPC());
                     gen.fixup(CondPC, gen.getPC());
                     if (scan.getLex() == Lex.L_BRACE) {
                         scan.setNextLex();
@@ -531,7 +623,6 @@ public class MainParser {
                         skip(Lex.R_BRACE);
                     } else {
                         Statement();
-                        check(Lex.SEMI);
                     }
                 }
             }
@@ -559,7 +650,6 @@ public class MainParser {
             skip(Lex.R_BRACE);
         } else {
             Statement();
-            check(Lex.SEMI);
         }
         gen.gen(WhilePC);
         gen.gen(jvm.GOTO);
@@ -595,10 +685,17 @@ public class MainParser {
             IfStatement();
         } else if (scan.getLex() == Lex.WHILE) {
             WhileStatement();
+        } else if (scan.getLex() == Lex.INC) {
+            IncDecStatement(jvm.ADD);
+            skip(Lex.SEMI);
+        } else if (scan.getLex() == Lex.DEC) {
+            IncDecStatement(jvm.SUB);
+            skip(Lex.SEMI);
         } else {
             throw new SyntaxException(scan.getT(), "Ожидается оператор");
         }
     }
+
 
     //    ПослОператоров =
 //        Оператор ";"
@@ -640,6 +737,14 @@ public class MainParser {
         skip(Lex.VOID);
         skip(Lex.NAME);
         skip(Lex.L_PAR);
+        check(Lex.NAME);
+        if (!(scan.getName().equals("String"))) {
+            throw new SyntaxException(scan.getT(), "Ожидается \"String\"");
+        }
+        scan.setNextLex();
+        skip(Lex.L_SQR_BR);
+        skip(Lex.R_SQR_BR);
+        skip(Lex.NAME);
         skip(Lex.R_PAR);
         skip(Lex.L_BRACE);
         SeqStatements();
@@ -723,7 +828,10 @@ public class MainParser {
         table.set(new Func("Math.min", T.Int), "Math.min");
         table.set(new Func("Math.incrementExact", T.Int), "Math.incrementExact");
         table.set(new Func("Math.decrementExact", T.Int), "Math.decrementExact");
-        table.set(new Func("Math.signum", T.Int), "Math.signum");
+        table.set(new Func("Math.negateExact", T.Int), "Math.negateExact");
+        table.set(new Func("Math.addExact", T.Int), "Math.addExact");
+        table.set(new Func("Math.subtractExact", T.Int), "Math.subtractExact");
+        table.set(new Func("Math.multiplyExact", T.Int), "Math.multiplyExact");
         table.set(new Proc("System.exit"), "System.exit");
         table.set(new Proc("System.out.println"), "System.out.println");
         table.set(new Proc("System.out.printf"), "System.out.printf");

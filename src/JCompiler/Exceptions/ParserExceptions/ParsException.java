@@ -18,18 +18,19 @@ public class ParsException extends RuntimeException {
     private Text t;
 
 
-    private int getPos() {
-        if (t.getLexPos() - 1 < 0) {
-            return t.getLexPos();
+    /*private int getPos() {
+        if (t.getLexLine() - 1 < 0) {
+            return t.getLexLine();
         }
-        return t.getLexPos() - 1;
-    }
+        return t.getLexLine() - 1;
+    }*/
 
     public void showError() {
         Out print = new Out();
         print.out(t.getLines());
         print.outLn("");
-        print.out(new String(new char[getPos()]).replace("\0", " "));
+        //print.out(new String(new char[getPos()]).replace("\0", " "));
+        print.out(t.getLexLine());
         print.outLn("^");
         print.outLn(msg);
     }

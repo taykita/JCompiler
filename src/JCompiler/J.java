@@ -1,5 +1,6 @@
 package JCompiler;
 
+import JCompiler.Exceptions.JVMException.JVMException;
 import JCompiler.Exceptions.ParserExceptions.ParsException;
 import JCompiler.Exceptions.ScannerExceptions.FileException;
 import JCompiler.Exceptions.ScannerExceptions.LexException;
@@ -48,8 +49,9 @@ public class J {
             jvm.Run();
         } catch (ParsException e) {
             e.showError();
-            //e.showStackTrace();
         } catch (LexException e) {
+            e.showError();
+        } catch (JVMException e) {
             e.showError();
         }
     }

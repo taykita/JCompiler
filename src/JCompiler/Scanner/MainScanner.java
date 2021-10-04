@@ -90,7 +90,7 @@ public class MainScanner {
 
     public void setNextLex() {
         skipSpace();
-        t.setLexPos(t.getInLinePos());
+        t.setLexLine(t.getLine4Bird());
         lex = Lex.NONE;
         nextLex();
         checkEOT();

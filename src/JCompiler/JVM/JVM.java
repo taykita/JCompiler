@@ -1,5 +1,6 @@
 package JCompiler.JVM;
 
+import JCompiler.Exceptions.JVMException.JVMException;
 import JCompiler.Exceptions.JVMException.RunException;
 import JCompiler.Utils.IO.Out;
 
@@ -44,9 +45,10 @@ public class JVM {
     public final int LN = -23;
     public final int OUTF = -24;
     public final int OUT = -25;
+    public final int ERROR = -26;
 
     private final int MEM_SIZE = 8 * 1024;
-    //private final int MEM_SIZE = 64;
+    //private final int MEM_SIZE = 99;
 
     private List<String> mnemo = new ArrayList<>(Arrays.asList("",
             "STOP", "ADD", "SUB", "MULT",
@@ -171,6 +173,8 @@ public class JVM {
                 SP += 2;
             } else if (cmd == LN) {
                 new Out().outLn("");
+            } else if (cmd == ERROR) {
+                new Out().out(S.get(M.get(SP)));
             } else if (cmd == STOP) {
                 break;
             } else {

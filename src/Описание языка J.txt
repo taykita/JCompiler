@@ -1,0 +1,52 @@
+- Язык "J" является точным подмножеством языка "Java", то есть любая программа на языке "J" является
+правильной программой на языке "Java"
+- Программа на языке "J" состоит из единственного класса и метода Main. Выполнение программы начинается
+с первого оператора, записанного после "{". Классы и методы, кроме Main, в "J" отсутствуют.
+- Предусмотрены константы и переменные только целого(int) типа. Выражения логического типа могут
+использоваться в операторах if и while.
+- Выражения строятся по ограниченным правилам языка "Java". Допустимы операции с целыми: +, -, *, %, /, +=, -+, *=, *=
+операции отношения: ==, !=, <, <=, >=, >
+- Набор операторов включает объявление, присваивание, вызов методов(стандартных),
+if-else if-else, while, создание объекта класса Scanner с параметром конструктора System.in,
+- Предусмотрены методы Min.abs, Math.max, Math.incrementExact, Math.negateExact, Math.addExact Math.decrementExact,
+Math.subtractExact, Math.multiplyExact, System.exit, System.out.println, System.out.printf, System.out.print. Их смысл
+такой же как и в языке Java, но с некоторыми ограничениями.
+System.out.print и println методы обрабатывают только числа.
+System.out.printf принимает строку формата и целое число
+Обработка строки формата совпадает с таковой в Java.
+Разрешается импорт стандартного (псевдо-) класса Scanner. Принимающий в качестве параметра конструктора
+только System.in и имеет один единственный метод nextInt().
+- Комментарии, названия имен совпадают с таковыми в Java. В том числе зарезервированные слова.
+
+Программа работающая на языке "J". Программа выводит все простые числа от 2 до n
+
+import java.util.Scanner;
+
+public class Test {
+    public static void main(String[] args) {
+        int n, s, d;
+        final int w = 6;
+        Scanner scan = new Scanner(System.in);
+        n = scan.nextInt();
+        int c = 0;
+        int i = 2;
+
+        while (i <= n) {
+            d = 2;
+            while ((i % d) != 0) {
+                d = Math.incrementExact(d);
+            }
+            if (d == i) {
+                if ((c % w) == 0) {
+                    System.out.println();
+                }
+                System.out.printf("%6s", i);
+                c = Math.incrementExact(c);
+            }
+            i = Math.incrementExact(i);
+        }
+        System.out.println();
+        System.out.print(c);
+        System.out.println();
+    }
+}
